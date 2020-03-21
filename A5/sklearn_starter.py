@@ -1,5 +1,6 @@
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.naive_bayes import BernoulliNB
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 import os
 import pickle
@@ -19,7 +20,7 @@ x_train, y_train = data["x_train"], data["y_train"]
 x_test, y_test = data["x_test"], data["y_test"]
 
 # Transformers reviews to feature-vectors. Removes stop words and only looks if word is present or not.
-vectorizer = HashingVectorizer(stop_words='english', binary=True, n_features=2**9)
+vectorizer = HashingVectorizer(stop_words='english', binary=True, n_features=2 ** 9)
 
 # Load vectorized reviews from file or vectorize them and save for later
 x_train_path = './data/x_train_vec.pkl'
@@ -41,17 +42,19 @@ else:
     with open(y_train_path, 'wb') as f:
         pickle.dump(x_test, f)
 
-# Fit a classifier
-logging.info("Fitting classifier")
-classifier = BernoulliNB()
-classifier.fit(X=x_train, y=y_train)
+# Fit classifiers
+classifiers = [("Naive Bayes", BernoulliNB()),
+               ("Decision Tree", DecisionTreeClassifier(max_depth=10, max_features='sqrt'))]
+for name, classifier in classifiers:
+    logging.info("Fitting {} classifier".format(name))
+    classifier.fit(X=x_train, y=y_train)
 
-# Predict and report score
-logging.info("Predicting reviews")
-train_pred = classifier.predict(x_train.toarray())
-test_pred = classifier.predict(x_test.toarray())
+    # Predict and report score
+    logging.info("Predicting reviews")
+    train_pred = classifier.predict(x_train.toarray())
+    test_pred = classifier.predict(x_test.toarray())
 
-train_acc = accuracy_score(y_train, train_pred)
-test_acc = accuracy_score(y_test, test_pred)
+    train_acc = accuracy_score(y_train, train_pred)
+    test_acc = accuracy_score(y_test, test_pred)
 
-logging.info("Train_Acc: {}, Test_Acc: {}".format(train_acc, test_acc))
+    logging.info("{} - Train_Acc: {}, Test_Acc: {}".format(name, train_acc, test_acc))
