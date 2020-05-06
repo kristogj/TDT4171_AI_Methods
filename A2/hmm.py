@@ -1,7 +1,8 @@
 import numpy as np
 
 T = np.array([[0.7, 0.3], [0.3, 0.7]])  # Transition model
-O = np.array([[0.9, 0], [0, 0.2]])  # Sensor model
+O = [np.array([[0.1, 0], [0, 0.8]]),
+     np.array([[0.9, 0], [0, 0.2]])]  # Sensor model
 
 
 def forward_backward(p_rain0, umbrella_t, b):
@@ -24,18 +25,14 @@ def forward_backward(p_rain0, umbrella_t, b):
 
 
 def forward(f_prev, u_i):
-    O_i = O
-    if not u_i:
-        O_i = 1 - O_i
+    O_i = O[int(u_i)]
     f = O_i.dot(T.T).dot(f_prev)  # Forward message
     f /= sum(f)  # Normalize so it sum to 1
     return f
 
 
 def backward(b, u_i):
-    O_i = O
-    if not u_i:
-        O_i = 1 - O_i
+    O_i = O[int(u_i)]
     b = T.dot(O_i).dot(b)
     return b
 
